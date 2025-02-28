@@ -1,0 +1,10 @@
+Django>=4.0,<5.0
+psycopg2-binary>=2.9,<3.0   # PostgreSQL adapter
+django-redis>=5.0.0,<6.0.0  # For Redis caching (session management, etc.)
+djangorestframework>=3.12,<4.0  # For building REST APIs (optional)
+django-celery-beat>=2.2,<3.0  # For Celery beat scheduling (optional)
+redis>=4.0,<5.0  # Redis client
+gunicorn>=20.1,<21.0  # WSGI server for production
+django-environ>=0.8.0,<1.0.0  # For environment variable management (optional)
+django-cors-headers>=3.7,<4.0  # For handling CORS
+django-environ>=0.8.0,<1.0.0
