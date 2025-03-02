@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import TripCard from "../components/Card";
 import { Row, Col, Pagination } from "antd";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const Trip = () => {
+  const navigate = useNavigate();
   const trips = [
     {
       id: 1,
@@ -118,12 +120,17 @@ const Trip = () => {
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
+
+  const handleTripClick = (trip) => {
+    navigate(`trip/${trip.id}`);
+  };
+
   return (
     <div style={{ textAlign: "center" }}>
       <Row gutter={[16, 16]} justify="center">
         {currentTrips.map((trip) => (
           <Col key={trip.id} xs={24} sm={12} md={8} lg={6} xl={4}>
-            <TripCard {...trip} />
+            <TripCard {...trip} onClick={() => handleTripClick(trip)} />
           </Col>
         ))}
       </Row>

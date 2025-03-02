@@ -47,7 +47,6 @@ const camps = [
     id: 3,
     title: "Eco Lodge",
     image: "/images/nature1.jpg",
-
     price: 350,
   },
 ];

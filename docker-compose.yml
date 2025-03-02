@@ -12,6 +12,13 @@ services:
     ports:
       - "5432:5432"
 
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
   redis:
     image: redis:latest
     ports:
@@ -24,8 +31,11 @@ services:
     volumes:
       - ./backend/user_service:/app
     environment:
-      - DATABASE_URL=postgres://user:password@postgres/travel_db
-      - DEBUG=true
+      - DB_HOST=postgres
+      - DB_NAME=travel_db
+      - DB_USER=user
+      - DB_PASSWORD=password
+
     depends_on:
       - postgres
       - redis
@@ -36,7 +46,7 @@ services:
     volumes:
       - ./backend/admin_service:/app
     environment:
-      - DATABASE_URL=postgres://user:password@postgres/travel_db
+      - DATABASE_URL=postgres://user:password@postgres:5432/travel_db
       - DEBUG=true
     depends_on:
       - postgres
@@ -51,23 +61,25 @@ services:
   #     - "8002:8002"
 
   # Frontend service (React or Next.js app)
-  frontend:
-    build: ./frontend
-    restart: always
-    volumes:
-      - ./frontend:/app
-    ports:
-      - "3000:3000"
-    depends_on:
-      - user-service
+  # frontend:
+  #   build: ./frontend
+  #   restart: always
+  #   volumes:
+  #     - ./frontend:/app
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - user-service
 
-  admin:
-    build: ./admin
-    restart: always
-    ports:
-      - "3001:3000"
-    depends_on:
-      - admin-service
+  # admin:
+  #   build: ./admin
+  #   restart: always
+  #   # volumes:
+  #   #   - ./admin:/app
+  #   ports:
+  #     - "3001:3000"
+  #   depends_on:
+  #     - admin-service
 
   nginx:
     image: nginx:latest

@@ -1,19 +1,37 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { Layout, Menu } from "antd";
 import {
   DashboardOutlined,
-  UserOutlined,
   FileTextOutlined,
   LogoutOutlined,
+  HomeOutlined,
+  ContactsOutlined,
+  CrownOutlined,
 } from "@ant-design/icons";
-import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 
 const { Header, Sider, Content } = Layout;
 
-const CustomLayout = ({ children }) => {
+const CustomLayout = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsAuthenticated(!!token); // Set authentication based on token presence
+  }, []);
+
+  const handleMenuClick = (path) => {
+    navigate(path); // Navigate programmatically
+  };
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sider collapsible>
+      <Sider collapsible breakpoint="lg">
         <div
           className="logo"
           style={{
@@ -26,19 +44,49 @@ const CustomLayout = ({ children }) => {
           Blue Gobi Tours
         </div>
         <Menu theme="dark" mode="inline">
-          <Menu.Item key="1" icon={<DashboardOutlined />}>
-            <Link to="/">Trip</Link>
+          <Menu.Item
+            key="1"
+            icon={<DashboardOutlined />}
+            onClick={() => handleMenuClick("/")}
+          >
+            Trip
           </Menu.Item>
-          <Menu.Item key="2" icon={<LogoutOutlined />}>
-            <Link to="/trip/new">Trip Build</Link>
+          <Menu.Item
+            key="2"
+            icon={<CrownOutlined />}
+            onClick={() => handleMenuClick("/trip/new")}
+          >
+            Trip Build
           </Menu.Item>
-          <Menu.Item key="3" icon={<UserOutlined />}>
-            <Link to="/users">Users</Link>
+          <Menu.Item
+            key="3"
+            icon={<ContactsOutlined />}
+            onClick={() => handleMenuClick("/places")}
+          >
+            Places
           </Menu.Item>
-          <Menu.Item key="4" icon={<FileTextOutlined />}>
-            <Link to="/bookings">Bookings</Link>
+          <Menu.Item
+            key="4"
+            icon={<HomeOutlined />}
+            onClick={() => handleMenuClick("/camps")}
+          >
+            Camps
           </Menu.Item>
-          <Menu.Item key="5" icon={<LogoutOutlined />}>
+          <Menu.Item
+            key="6"
+            icon={<FileTextOutlined />}
+            onClick={() => handleMenuClick("/bookings")}
+          >
+            Bookings
+          </Menu.Item>
+          <Menu.Item
+            key="7"
+            icon={<LogoutOutlined />}
+            onClick={() => {
+              localStorage.removeItem("token"); // Clear token
+              navigate("/login"); // Redirect to login
+            }}
+          >
             Logout
           </Menu.Item>
         </Menu>
@@ -47,7 +95,9 @@ const CustomLayout = ({ children }) => {
         <Header style={{ background: "#fff", padding: 0, textAlign: "center" }}>
           Admin Dashboard
         </Header>
-        <Content style={{ margin: "16px" }}>{children}</Content>
+        <Content style={{ margin: "16px" }}>
+          <Outlet /> {/* Render nested routes here */}
+        </Content>
       </Layout>
     </Layout>
   );

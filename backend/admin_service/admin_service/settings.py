@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -31,16 +31,18 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_redis',
+    'corsheaders',
     'admin'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -52,27 +54,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'admin_service.urls'
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
 WSGI_APPLICATION = 'admin_service.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
     'default': {
@@ -84,7 +66,31 @@ DATABASES = {
         'PORT': '5432',  # The port mapped in docker-compose (default PostgreSQL port)
     }
 }
+# settings.py
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']  # Add your frontend URL here
+CSRF_COOKIE_SECURE = False
+CSRF_HEADER_NAME = 'X-CSRFToken'
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Replace with your frontend URL
+    "http://localhost:3001",  # Another example
+]
 
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+    'x-custom-header',
+    # other headers
+]
+CORS_ALLOW_CREDENTIALS = True
+# settings.py
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'  # Use cache backend for sessions
+SESSION_CACHE_ALIAS = 'default'  # Default cache alias
 # Redis cache configuration
 CACHES = {
     'default': {
@@ -95,10 +101,19 @@ CACHES = {
         }
     }
 }
+SESSION_COOKIE_AGE = 3600  # 1 hour
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-# If you want to use Redis for sessions (optional)
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # 'admin.auth.SessionAuthentication', 
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
