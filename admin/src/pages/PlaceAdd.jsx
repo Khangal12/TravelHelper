@@ -15,12 +15,11 @@ import "leaflet/dist/leaflet.css";
 import "leaflet-control-geocoder/dist/Control.Geocoder.css";
 import axios from "axios"; // Import axios for HTTP requests
 import { useNavigate } from "react-router-dom";
-
+import useApi from "../hook/useApi";
 const { Step } = Steps;
 
 const LocationSelector = ({ onLocationSelect }) => {
   const [position, setPosition] = useState(null);
-
   const map = useMapEvents({
     click(event) {
       const { lat, lng } = event.latlng;
@@ -79,6 +78,8 @@ const LocationSelector = ({ onLocationSelect }) => {
 
 const PlaceAdd = () => {
   const navigate = useNavigate();
+  const placeApi = useApi().place;
+
   const [currentStep, setCurrentStep] = useState(0);
   const [location, setLocation] = useState(null);
   const [placeDetails, setPlaceDetails] = useState({
@@ -124,15 +125,7 @@ const PlaceAdd = () => {
 
       try {
         // Send a POST request to the Django API
-        const response = await axios.post(
-          "http://127.0.0.1:8001/api/admin/place/",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+        const data = await placeApi.post(formData);
         message.success("Place added successfully!");
         setImage(null);
         setLocation(null);

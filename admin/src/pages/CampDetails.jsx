@@ -1,25 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { Button, Card, Col, Row, Typography, Divider } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import RoomCard from "../components/RoomCard";
 import { ArrowLeftOutlined } from "@ant-design/icons";
+import useApi from "../hook/useApi";
+
 const { Title, Text } = Typography;
 
 const CampDetails = () => {
   const [camp, setCamp] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
-
+  const campApi = useApi().camp;
   // Fetch the camp details using the ID from the route params
   useEffect(() => {
     const fetchCampDetails = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:8001/api/admin/camps/${id}/`
-        );
+        const response = await campApi.getDetail(id);
         setCamp(response.data);
-        console.log(response);
       } catch (error) {
         console.error("Error fetching camp details:", error);
       }

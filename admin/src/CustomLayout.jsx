@@ -12,18 +12,39 @@ import {
 
 const { Header, Sider, Content } = Layout;
 
-const CustomLayout = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+const CustomLayout = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsAuthenticated(!!token); // Set authentication based on token presence
+    const checkAuth = () => {
+      const token = localStorage.getItem("token");
+      setIsAuthenticated(!!token);
+    };
+
+    checkAuth();
+    window.addEventListener("storage", checkAuth);
+
+    setLoading(false);
+
+    return () => {
+      window.removeEventListener("storage", checkAuth);
+    };
   }, []);
 
   const handleMenuClick = (path) => {
-    navigate(path); // Navigate programmatically
+    navigate(path);
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
+    navigate("/login");
+  };
+
+  if (loading) return <div>Loading...</div>;
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -31,7 +52,12 @@ const CustomLayout = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sider collapsible breakpoint="lg">
+      <Sider
+        collapsible
+        collapsed={collapsed}
+        onCollapse={(value) => setCollapsed(value)}
+        breakpoint="lg"
+      >
         <div
           className="logo"
           style={{
@@ -79,14 +105,7 @@ const CustomLayout = () => {
           >
             Bookings
           </Menu.Item>
-          <Menu.Item
-            key="7"
-            icon={<LogoutOutlined />}
-            onClick={() => {
-              localStorage.removeItem("token"); // Clear token
-              navigate("/login"); // Redirect to login
-            }}
-          >
+          <Menu.Item key="7" icon={<LogoutOutlined />} onClick={handleLogout}>
             Logout
           </Menu.Item>
         </Menu>
@@ -96,7 +115,7 @@ const CustomLayout = () => {
           Admin Dashboard
         </Header>
         <Content style={{ margin: "16px" }}>
-          <Outlet /> {/* Render nested routes here */}
+          <Outlet />
         </Content>
       </Layout>
     </Layout>

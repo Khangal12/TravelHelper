@@ -69,20 +69,21 @@ DATABASES = {
 # settings.py
 CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']  # Add your frontend URL here
 CSRF_COOKIE_SECURE = False
+CORS_ALLOW_CREDENTIALS = True
 CSRF_HEADER_NAME = 'X-CSRFToken'
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Replace with your frontend URL
     "http://localhost:3001",  # Another example
 ]
-
+CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 CORS_ALLOW_HEADERS = [
     'content-type',
     'authorization',
     'x-custom-header',
+    "X-CSRFToken",
     # other headers
 ]
-CORS_ALLOW_CREDENTIALS = True
 # settings.py
 
 MEDIA_URL = '/media/'
@@ -107,8 +108,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 'admin.auth.SessionAuthentication', 
-        'rest_framework.authentication.SessionAuthentication',
+        'admin.auth.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',

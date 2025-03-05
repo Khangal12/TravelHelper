@@ -8,11 +8,12 @@ from django.http import JsonResponse
 from rest_framework.exceptions import NotFound
 from django.contrib.auth import authenticate, login
 from django.core.cache import cache
-from rest_framework.permissions import AllowAny  # Import this class
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .auth import SessionAuthentication
+
 class LoginView(APIView):
     permission_classes = [AllowAny] 
     def post(self, request):
-        print('lala')
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             username = serializer.validated_data['username']
@@ -28,7 +29,7 @@ class LoginView(APIView):
                     token = secrets.token_hex(32)  # You can use Django's built-in TokenAuthentication or generate your own
 
                     # Optionally set an expiration time for the session
-                    cache.set(f'user_session_{user.id}', token, timeout=3600)  # 1 hour
+                    cache.set(f'user_session_{token}', user.id, timeout=1800)  # 1 hour
 
                     return Response({'message': 'Login successful', 'token': token}, status=status.HTTP_200_OK)
                 else:
@@ -38,7 +39,8 @@ class LoginView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CampListCreateAPIView(APIView):
-    permission_classes = [AllowAny] 
+    authentication_classes = [SessionAuthentication]  # Use custom authentication
+    permission_classes = [IsAuthenticated]  # 
     def get(self, request):
         camps = Camp.objects.all()
         serializer = CampSerializer(camps, many=True, context={'request': request})
@@ -46,13 +48,14 @@ class CampListCreateAPIView(APIView):
 
     def post(self, request):
         data =request.data
+        print(data)
         place_id = data.get('place')
         name = data.get('name')
         description = data.get('description')
         capacity = data.get('capacity')
         image = data.get('image')
-        room_count = data.get('roomcount')
-        room_count = int(room_count)
+        room_count = int(data.get('roomcount'))
+
         camp = Camp.objects.create(
             place_id=place_id,
             name=name,
@@ -77,7 +80,8 @@ class CampListCreateAPIView(APIView):
         return JsonResponse({'status': 'success', 'message': 'Camp and rooms added successfully!'})
 
 class CampDetailAPIView(APIView):
-    permission_classes = [AllowAny] 
+    authentication_classes = [SessionAuthentication]  # Use custom authentication
+    permission_classes = [IsAuthenticated]  # 
     def get(self, request, pk):
         try:
             # Attempt to get the camp by primary key (pk)
@@ -88,7 +92,6 @@ class CampDetailAPIView(APIView):
 
         # Serialize the camp object, including its rooms
         serializer = CampDetailSerializer(camp,context={'request': request})
-        print(serializer.data)
         # Return the serialized data in the response
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -106,7 +109,8 @@ class CampDetailAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class PlaceListView(APIView):
-    permission_classes = [AllowAny] 
+    authentication_classes = [SessionAuthentication]  # Use custom authentication
+    permission_classes = [IsAuthenticated]  # 
     def get(self, request):
         places = Place.objects.all()
         serializer = PlaceSerializer(places, many=True, context={'request': request})
@@ -128,3 +132,19 @@ class PlaceListView(APIView):
 
                 # Return the errors in the response
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CampByPlacesAPIView(APIView):
+    authentication_classes = [SessionAuthentication]  # Use custom authentication
+    permission_classes = [IsAuthenticated]  # 
+    def get(self, request, pk):
+        try:
+            # Attempt to get the camp by primary key (pk)
+            camp = Camp.objects.filter(place=pk)
+        except Camp.DoesNotExist:
+            # Return a 404 response if the camp is not found
+            raise NotFound(detail="Camp not found.")
+
+        # Serialize the camp object, including its rooms
+        serializer = CampDetailSerializer(camp,many=True, context={'request': request})
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

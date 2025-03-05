@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Form, Input, Button, Select, Upload, message, Row, Col } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
+import useApi from "../hook/useApi";
 
-// Static room options (room numbers)
 const roomOptions = [1, 2, 3, 4, 5]; // Representing 1 to 5 rooms
 
 const CampAdd = () => {
   const [form] = Form.useForm();
   const [roomCount, setRoomCount] = useState(1); // Default room count is 1
   const [places, setPlaces] = useState([]);
+  const placeApi = useApi().place;
+  const campApi = useApi().camp;
   // Handle the room count change (number of rooms)
   const handleRoomCountChange = (value) => {
     setRoomCount(value);
@@ -17,13 +19,8 @@ const CampAdd = () => {
   useEffect(() => {
     const fetchPlaces = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8001/api/admin/place/"); // Replace with your API endpoint
-        if (response.ok) {
-          const data = await response.json();
-          setPlaces(data); // Assuming the response is an array of places
-        } else {
-          message.error("Failed to fetch places.");
-        }
+        const response = await placeApi.get(); // Replace with your API endpoint
+        setPlaces(response); // Assuming the response is an array of places
       } catch (error) {
         message.error("An error occurred while fetching places.");
       }
@@ -52,18 +49,18 @@ const CampAdd = () => {
       );
       formData.append(`room_${i}_price`, values[`room_${i}_price`]);
     }
-
-    // Send the form data to the backend
-    const response = await fetch("http://127.0.0.1:8001/api/admin/camps/", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (response.ok) {
-      message.success("Camp added successfully!");
-      form.resetFields(); // Reset form after successful submission
-    } else {
-      message.error("Error adding camp!");
+    try {
+      const response = await campApi.post(formData);
+      if (response.status === "success") {
+        message.success("Camp added successfully!");
+        form.resetFields(); // Reset form after successful submission
+        setRoomCount(1); // Reset room count to 1
+      } else {
+        message.error("Error adding camp!");
+      }
+    } catch (error) {
+      message.error("An error occurred while submitting the form.");
+      console.error(error);
     }
   };
 

@@ -2,44 +2,25 @@ import React, { useState } from "react";
 import { Form, Input, Button, Checkbox, Typography, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
-import axios from "axios"; // Import axios for making API requests
-
+import useApi from "../hook/useApi";
 const { Title } = Typography;
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const loginApi = useApi().user;
+
   const onFinish = async (values) => {
     setLoading(true);
-    try {
-      // Make the API request to your backend login endpoint
-      const response = await axios.post(
-        "http://localhost:8001/api/admin/login/",
-        {
-          username: values.username,
-          password: values.password,
-        }
-      );
-
-      // Check if the response contains a token or session
-      if (response.status === 200 && response.data.token) {
-        message.success("Login successful!");
-
-        // Save the token to localStorage or use it as needed
-        localStorage.setItem("token", response.data.token);
-
-        // Redirect to home/dashboard after login
-        setTimeout(() => {
-          // Redirect after authentication is completed
-          navigate("/");
-        }, 500); // Adjust timing as needed
-      }
-    } catch (error) {
-      message.error("Login failed. Please check your credentials.");
-      console.error("Login error:", error);
-    } finally {
-      setLoading(false);
+    const data = await loginApi.login(values);
+    if (data.token) {
+      message.success("Login successful!");
+      localStorage.setItem("token", data.token); // Fix: save the correct token
+      navigate("/");
+    } else {
+      message.error(data.error || "Login failed!");
     }
+    setLoading(false);
   };
 
   return (

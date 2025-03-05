@@ -1,23 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { Card, Row, Col, Typography, Button } from "antd";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import useApi from "../hook/useApi";
 
 const { Title, Text } = Typography;
 
 const CampBuild = () => {
   const [places, setPlaces] = useState([]);
   const navigate = useNavigate();
-
+  const campApi = useApi().camp;
   // Fetch places data from the Django API using axios
   useEffect(() => {
     const fetchPlaces = async () => {
       try {
-        const response = await axios.get(
-          "http://127.0.0.1:8001/api/admin/camps/"
-        );
-        console.log(response);
-        setPlaces(response.data);
+        const response = await campApi.get();
+        setPlaces(response);
       } catch (error) {
         console.error("Error fetching places:", error);
       }
