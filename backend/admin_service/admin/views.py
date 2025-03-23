@@ -148,3 +148,11 @@ class CampByPlacesAPIView(APIView):
         serializer = CampDetailSerializer(camp,many=True, context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class PlaceDetailView(APIView):
+    authentication_classes = [SessionAuthentication]  # Use custom authentication
+    permission_classes = [IsAuthenticated]  # 
+    def get(self, request,pk=None):
+        places = Place.objects.filter(id=pk)
+        serializer = PlaceSerializer(places, many=True, context={'request': request})
+        return Response(serializer.data)

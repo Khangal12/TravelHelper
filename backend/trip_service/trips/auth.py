@@ -1,3 +1,4 @@
+import requests
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from django.core.cache import cache
@@ -13,23 +14,19 @@ class SessionAuthentication(BaseAuthentication):
             try:
                 # Extract the token part after 'Bearer ' prefix
                 token = token.split(' ')[1]  # Assumes token format 'Bearer <token>'
-
                 # Check if token exists in Redis cache
-                user_id = cache.get(f'user_session_{token}')
-                
-                if not user_id:
-                    raise AuthenticationFailed('Invalid or expired token')
+                user_data = cache.get(f'user_session_{token}')
+                if user_data:
+                    user = type("User", (object,), user_data)
+                    user.is_authenticated = True
+                    request.user = user
 
-                # Retrieve the user from the database
-                user = User.objects.get(id=user_id)
-
-                # If everything is fine, return the user and token
-                return (user, None)
+                    return (request.user,token)
+                else:
+                    raise AuthenticationFailed('invalid token')
 
             except IndexError:
                 raise AuthenticationFailed('Token is malformed')
-            except User.DoesNotExist:
-                raise AuthenticationFailed('User not found')
             except Exception as e:
                 raise AuthenticationFailed(f'Authentication failed: {str(e)}')
 

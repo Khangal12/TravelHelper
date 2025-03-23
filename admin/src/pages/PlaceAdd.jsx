@@ -77,8 +77,8 @@ const LocationSelector = ({ onLocationSelect }) => {
 };
 
 const PlaceAdd = () => {
+  const {admin} = useApi()
   const navigate = useNavigate();
-  const placeApi = useApi().place;
 
   const [currentStep, setCurrentStep] = useState(0);
   const [location, setLocation] = useState(null);
@@ -125,7 +125,7 @@ const PlaceAdd = () => {
 
       try {
         // Send a POST request to the Django API
-        const data = await placeApi.post(formData);
+        const data = await admin.place.post(formData);
         message.success("Place added successfully!");
         setImage(null);
         setLocation(null);

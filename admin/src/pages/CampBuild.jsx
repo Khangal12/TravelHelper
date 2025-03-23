@@ -6,14 +6,15 @@ import useApi from "../hook/useApi";
 const { Title, Text } = Typography;
 
 const CampBuild = () => {
+  const { admin } = useApi()
   const [places, setPlaces] = useState([]);
   const navigate = useNavigate();
-  const campApi = useApi().camp;
+
   // Fetch places data from the Django API using axios
   useEffect(() => {
     const fetchPlaces = async () => {
       try {
-        const response = await campApi.get();
+        const response = await admin.camp.get();
         setPlaces(response);
       } catch (error) {
         console.error("Error fetching places:", error);

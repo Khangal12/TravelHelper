@@ -9,17 +9,22 @@ import {
   Col,
   Select,
   DatePicker,
+  message
 } from "antd";
 import SliderPlace from "../components/Slider";
 import useApi from "../hook/useApi";
 import moment from "moment";
+import MapComponent from "../components/MapComponent";
+import { useNavigate } from "react-router-dom";
 const { Step } = Steps;
 const { Meta } = Card;
 const { RangePicker } = DatePicker;
+const { TextArea } = Input;
 
 const TripProgram = () => {
-  const placeApi = useApi().place;
-  const campApi = useApi().camp;
+  const navigate = useNavigate();
+  const { admin } = useApi();
+  const { trip } = useApi();
   const [days, setDays] = useState(0);
   const [tripData, setTripData] = useState([]);
   const [showModal, setShowModal] = useState(true);
@@ -29,17 +34,31 @@ const TripProgram = () => {
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [selectedCamp, setSelectedCamp] = useState(null);
   const [tripDates, setTripDates] = useState([moment(), moment()]);
+  const [loading, setLoading] = useState(true);
+  const [tripTitle, setTripTitle] = useState("");
+  const [tripDescription, setTripDescription] = useState("");
+  const [isModalValid, setIsModalValid] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const placeResponse = await placeApi.get();
-        setPlaces(placeResponse);
-      } catch (error) {
-        console.error("Error fetching place and camp data:", error);
-      }
-    };
+    setIsModalValid(
+      tripTitle.trim() !== "" &&
+      tripDates.length === 2 &&
+      tripDescription.trim() !== ""
+    );
+  }, [tripTitle, tripDates, tripDescription]);
 
+  const fetchData = async (selectedPlace = null) => {
+    try {
+      const placeResponse = await trip.place.getPlaces(selectedPlace || 0);
+      setPlaces(placeResponse.places);
+    } catch (error) {
+      console.error("Error fetching place and camp data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -47,7 +66,7 @@ const TripProgram = () => {
     const fetchCamps = async () => {
       if (selectedPlace) {
         try {
-          const campResponse = await campApi.getByPlaces(selectedPlace);
+          const campResponse = await admin.camp.getByPlaces(selectedPlace);
           setCamps(campResponse);
         } catch (error) {
           console.error("Error fetching place and camp data:", error);
@@ -68,21 +87,26 @@ const TripProgram = () => {
   const handleDateChange = (dates) => {
     if (dates && dates[0] && dates[1]) {
       setTripDates(dates);
-
-      // Ensure we are getting the correct start and end dates
-      const startDate = dates[0]; // First date
-      const endDate = dates[1]; // Second date
-
-      // Calculate the number of days difference
+      const startDate = dates[0];
+      const endDate = dates[1];
       const diffInDays = endDate.diff(startDate, "days");
-
-      // To ensure that the day difference includes both start and end date, add 1
-      setDays(diffInDays + 1); // Add 1 to include the start date itself
+      setDays(diffInDays + 1);
     }
   };
 
   const handleNext = () => {
+    if (!selectedPlace || !selectedCamp) {
+      message.warning("Заавал амралтын газар болон аялах газар оруулна уу");
+      return;
+    }
+
     if (currentStep < days - 1) {
+      const stepData = {
+        place: selectedPlace,
+        camp: selectedCamp,
+      };
+      localStorage.setItem(`tripData_day_${currentStep}`, JSON.stringify(stepData));
+      fetchData(selectedPlace);
       handleChangeDayDetails("day", currentStep + 1);
       setCurrentStep(currentStep + 1);
       setSelectedCamp(null);
@@ -92,12 +116,37 @@ const TripProgram = () => {
 
   const handlePrev = () => {
     if (currentStep > 0) {
+      const prevStepData = JSON.parse(localStorage.getItem(`tripData_day_${currentStep - 1}`));
+      if (prevStepData) {
+        setSelectedPlace(prevStepData.place);
+        setSelectedCamp(prevStepData.camp);
+      }
+      fetchData(prevStepData?.place || 0);
       setCurrentStep(currentStep - 1);
     }
   };
+
+  useEffect(() => {
+    const stepData = JSON.parse(localStorage.getItem(`tripData_day_${currentStep}`));
+    if (stepData) {
+      setSelectedPlace(stepData.place);
+      setSelectedCamp(stepData.camp);
+    } else {
+      setSelectedPlace(null);
+      setSelectedCamp(null);
+    }
+
+    if (currentStep > 0) {
+      const prevStepData = JSON.parse(localStorage.getItem(`tripData_day_${currentStep - 1}`));
+      fetchData(prevStepData?.place || 0);
+    } else {
+      fetchData();
+    }
+  }, [currentStep]);
+
   const handleChangeDayDetails = (field, value) => {
-    setTripData(
-      tripData.map((day, index) =>
+    setTripData((prevTripData) =>
+      prevTripData.map((day, index) =>
         index === currentStep ? { ...day, [field]: value } : day
       )
     );
@@ -126,33 +175,102 @@ const TripProgram = () => {
   };
 
   const handleOk = () => {
+    if (!isModalValid) {
+      message.warning("Бүх талбарыг бөглөн үү");
+      return;
+    }
     setShowModal(false);
+  };
+
+  const handleClose = () => {
+    navigate(-1);
+  };
+
+  const handleSubmit = async () => {
+    try {
+
+      const itinerary = [];
+      for (let i = 0; i < days; i++) {
+        const dayData = JSON.parse(localStorage.getItem(`tripData_day_${i}`));
+        if (dayData) {
+          itinerary.push({
+            day: i + 1,
+            place: dayData.place,
+            camp: dayData.camp,
+            additional: dayData.additional || "", // Include additional details if available
+          });
+        }
+      }
+      // Gather all the trip data
+      const tripDetails = {
+        title: tripTitle,
+        description: tripDescription,
+        startDate: tripDates[0].format("YYYY-MM-DD"),
+        endDate: tripDates[1].format("YYYY-MM-DD"),
+        days: days,
+        itinerary: itinerary,
+      };
+
+      const response = await trip.trip.createTrip(tripDetails);
+      if (response.trip_id) {
+        for (let i = 0; i < days; i++) {
+          localStorage.removeItem(`tripData_day_${i}`);
+        }
+        message.success("Амжилттай хадгаллаа");
+        navigate("/");
+      } else {
+        message.error("Алдаа гарлаа");
+      }
+    } catch (error) {
+      message.error("Алдаа гарлаа");
+    }
   };
 
   return (
     <div>
       <Modal
         visible={showModal}
-        onCancel={() => setShowModal(false)}
+        onCancel={handleClose}
         onOk={handleOk}
       >
         <div style={{ marginBottom: 20 }}>
-          <strong>Select Date</strong>
+          <strong>Аялалын гарчиг</strong>
+          <Input
+            type="text"
+            placeholder="Аялалын гарчиг"
+            value={tripTitle}
+            onChange={(e) => setTripTitle(e.target.value)}
+            required
+          />
+        </div>
+        <div style={{ marginBottom: 20 }}>
+          <strong>Аялах огноо оруулна уу</strong>
           <RangePicker
             value={tripDates}
             onChange={handleDateChange}
             style={{ width: "100%" }}
+            required
           />
         </div>
         <div style={{ marginBottom: 10 }}>
-          <strong>Number of Days</strong>
+          <strong>Аялалын өдрийн тоо</strong>
           <Input
             type="number"
             min={1}
             value={days}
             disabled
             onChange={(e) => handleDayChange(Number(e.target.value))}
-            placeholder="Number of days"
+            placeholder="Аялалын өдрийн тоо"
+            required
+          />
+        </div>
+        <div style={{ marginBottom: 20 }}>
+          <strong>Аялалын тайлбар</strong>
+          <TextArea
+            rows={4}
+            value={tripDescription}
+            onChange={(e) => setTripDescription(e.target.value)}
+            required
           />
         </div>
       </Modal>
@@ -173,27 +291,36 @@ const TripProgram = () => {
             <Card title={`Place to visit`} style={{ width: "100%" }}>
               <div style={{ marginBottom: 10 }}>
                 <Select
-                  value={selectedPlace}
                   placeholder="Select a Place"
                   allowClear
+                  value={selectedPlace}
                   className="w-100"
                   onChange={handleSelectPlace}
+                  loading={loading}
                 >
-                  {places.length > 0 ? (
+                  {loading ? (
+                    <Select.Option disabled value="">
+                      Уншиж байна...
+                    </Select.Option>
+                  ) : places.length > 0 ? (
                     places.map((place) => (
                       <Select.Option key={place.id} value={place.id}>
-                        {place.image && (
-                          <img
-                            src={place.image}
-                            alt={place.title}
-                            style={{ width: 30, height: 30, marginRight: 10 }}
-                          />
-                        )}
-                        {place.title}
+                        <div style={{ display: "flex", alignItems: "center" }}>
+                          {place.image_url && (
+                            <img
+                              src={place.image_url}
+                              style={{ width: 30, height: 30, marginRight: 10 }}
+                            />
+                          )}
+                          {place.title}
+                          ({place.distance_km} km)
+                        </div>
                       </Select.Option>
                     ))
                   ) : (
-                    <Select.Option disabled>Select Place</Select.Option>
+                    <Select.Option disabled value="">
+                      Мэдээлэл олдсонгүй
+                    </Select.Option>
                   )}
                 </Select>
               </div>
@@ -210,7 +337,7 @@ const TripProgram = () => {
               <div style={{ marginBottom: 10 }}>
                 <Select
                   value={selectedCamp}
-                  placeholder="First select a place"
+                  placeholder="Эхлээд газараа сонгон уу"
                   allowClear
                   className="w-100"
                   onChange={handleSelectCamps}
@@ -229,7 +356,7 @@ const TripProgram = () => {
                       </Select.Option>
                     ))
                   ) : (
-                    <Select.Option disabled>First Select a Place</Select.Option>
+                    <Select.Option disabled>Эхлээд газараа сонгон уу</Select.Option>
                   )}
                 </Select>
               </div>
@@ -243,23 +370,27 @@ const TripProgram = () => {
           </Col>
         </Row>
       </div>
-
       <div>
+        <MapComponent id={selectedPlace} />
+      </div>
+      <div className="mt-5">
         <Button
           type="primary"
           onClick={handlePrev}
           disabled={currentStep === 0}
           style={{ marginRight: 10 }}
         >
-          Previous
+          Буцах
         </Button>
-        <Button
-          type="primary"
-          onClick={handleNext}
-          disabled={currentStep === days - 1}
-        >
-          Next
-        </Button>
+        {currentStep === days - 1 ? (
+          <Button type="primary" onClick={handleSubmit}>
+            Хадгалах
+          </Button>
+        ) : (
+          <Button type="primary" onClick={handleNext}>
+            Дараах
+          </Button>
+        )}
       </div>
     </div>
   );

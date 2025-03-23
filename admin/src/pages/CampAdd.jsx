@@ -6,11 +6,11 @@ import useApi from "../hook/useApi";
 const roomOptions = [1, 2, 3, 4, 5]; // Representing 1 to 5 rooms
 
 const CampAdd = () => {
+  const {admin} = useApi()
   const [form] = Form.useForm();
   const [roomCount, setRoomCount] = useState(1); // Default room count is 1
   const [places, setPlaces] = useState([]);
-  const placeApi = useApi().place;
-  const campApi = useApi().camp;
+
   // Handle the room count change (number of rooms)
   const handleRoomCountChange = (value) => {
     setRoomCount(value);
@@ -19,7 +19,7 @@ const CampAdd = () => {
   useEffect(() => {
     const fetchPlaces = async () => {
       try {
-        const response = await placeApi.get(); // Replace with your API endpoint
+        const response = await admin.place.get(); // Replace with your API endpoint
         setPlaces(response); // Assuming the response is an array of places
       } catch (error) {
         message.error("An error occurred while fetching places.");
@@ -50,7 +50,7 @@ const CampAdd = () => {
       formData.append(`room_${i}_price`, values[`room_${i}_price`]);
     }
     try {
-      const response = await campApi.post(formData);
+      const response = await admin.camp.post(formData);
       if (response.status === "success") {
         message.success("Camp added successfully!");
         form.resetFields(); // Reset form after successful submission

@@ -25,8 +25,7 @@ SECRET_KEY = 'django-insecure-#@s^%mvnwny*4bcr0mj^d)30c3w_2xq7(7voa+9h%21*ayu=y+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -38,10 +37,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',  # if you're using Django REST Framework
-    'users',  # <-- Add this line for your app
+    'users',
+    'corsheaders',
+    'django_redis'  # <-- Add this line for your app
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -85,6 +87,33 @@ DATABASES = {
         'PORT': '5432',  # The port mapped in docker-compose (default PostgreSQL port)
     }
 }
+# settings.py
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000','http://localhost:3001', "http://localhost:8001",
+    "http://localhost:8002",
+    "http://localhost:8000",
+    ]  # Add your frontend URL here
+CSRF_COOKIE_SECURE = False
+CORS_ALLOW_CREDENTIALS = True
+CSRF_HEADER_NAME = 'X-CSRFToken'
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Replace with your frontend URL
+    "http://localhost:3001",
+    "http://localhost:8001",
+    "http://localhost:8002",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:8001",
+    "http://127.0.0.1:8002",
+]
+CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+    'x-custom-header',
+    "X-CSRFToken",
+    # other headers
+]
 
 
 # Password validation
@@ -119,6 +148,20 @@ CACHES = {
 # If you want to use Redis for sessions (optional)
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
+
+SESSION_COOKIE_AGE = 3600  # 1 hour
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'users.auth.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/

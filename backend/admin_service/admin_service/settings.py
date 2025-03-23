@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-t&oozw+a1-canqp(d%pa%%fy-&z2)8^#7b3bzb3xv$#n!aj%k&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -46,7 +46,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -67,10 +66,7 @@ DATABASES = {
     }
 }
 # settings.py
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']  # Add your frontend URL here
-CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
-CSRF_HEADER_NAME = 'X-CSRFToken'
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Replace with your frontend URL
@@ -81,12 +77,13 @@ CORS_ALLOW_HEADERS = [
     'content-type',
     'authorization',
     'x-custom-header',
-    "X-CSRFToken",
     # other headers
 ]
 # settings.py
 
-MEDIA_URL = '/media/'
+# settings.py
+MEDIA_URL = 'http://localhost/media/'
+
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
@@ -113,8 +110,47 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+     'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',  # Ensure JSON response
+    ),
 }
+# settings.py
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'admin_service.log',  # Log file for admin service
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'admin_service': {  # Custom logger for your admin service
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 

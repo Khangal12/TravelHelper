@@ -1,6 +1,7 @@
 version: "3.8"
 
 services:
+  # Postgres Databases
   postgres:
     image: postgres:latest
     environment:
@@ -11,6 +12,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - mynetwork
 
   trip_db:
     image: postgres:latest
@@ -22,6 +25,10 @@ services:
       - "5433:5432"
     volumes:
       - trip_db_data:/var/lib/postgresql/data
+    networks:
+      - mynetwork
+
+  # PgAdmin for managing PostgreSQL
   pgadmin:
     image: dpage/pgadmin4
     environment:
@@ -29,13 +36,23 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"
+    networks:
+      - mynetwork
+
+  # Redis (if required)
   redis:
     image: redis:latest
     ports:
       - "6379:6379"
-  # Backend services
+    networks:
+      - mynetwork
+
+  # Backend Services
   user-service:
+    image: user-service-image
     build: ./backend/user_service
+    networks:
+      - mynetwork
     ports:
       - "8000:8000"
     volumes:
@@ -45,26 +62,32 @@ services:
       - DB_NAME=travel_db
       - DB_USER=user
       - DB_PASSWORD=password
-
     depends_on:
       - postgres
       - redis
+
   admin-service:
+    image: admin-service-image
     build: ./backend/admin_service
+    networks:
+      - mynetwork
     ports:
       - "8001:8001"
     volumes:
       - ./backend/admin_service:/app
     environment:
-      - DATABASE_URL=postgres://user:password@postgres:5432/travel_db
-      - DATABASE_URL=postgres://user:password@postgres:5432/trip_db
+      - DATABASE_URL_TRAVEL=postgres://user:password@postgres:5432/travel_db
+      - DATABASE_URL_TRIP=postgres://user:password@postgres:5432/trip_db
       - DEBUG=true
     depends_on:
       - postgres
       - redis
 
-  trip_service:
+  trip-service:
+    image: trip-service-image
     build: ./backend/trip_service
+    networks:
+      - mynetwork
     ports:
       - "8002:8002"
     volumes:
@@ -75,16 +98,24 @@ services:
     depends_on:
       - postgres
       - redis
-  # booking-service:
-  #   build: ./booking_service
-  #   ports:
-  #     - "8001:8001"
-  # payment-service:
-  #   build: ./payment_service
-  #   ports:
-  #     - "8002:8002"
 
-  # Frontend service (React or Next.js app)
+  # Nginx Service for routing requests
+  nginx:
+    image: nginx:latest
+    container_name: travelhelper-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./backend/admin_service:/app
+    depends_on:
+      - admin-service
+      - user-service
+      - trip-service
+    networks:
+      - mynetwork
+
+  # Frontend Service (if required)
   # frontend:
   #   build: ./frontend
   #   restart: always
@@ -98,23 +129,16 @@ services:
   # admin:
   #   build: ./admin
   #   restart: always
-  #   # volumes:
-  #   #   - ./admin:/app
   #   ports:
   #     - "3001:3000"
   #   depends_on:
   #     - admin-service
 
-  nginx:
-    image: nginx:latest
-    container_name: travelhelper-nginx
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - admin-service
-      - user-service
 volumes:
   postgres_data:
   trip_db_data:
+  refis_data:
+
+networks:
+  mynetwork:
+    driver: bridge

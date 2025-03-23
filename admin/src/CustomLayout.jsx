@@ -75,38 +75,38 @@ const CustomLayout = ({ children }) => {
             icon={<DashboardOutlined />}
             onClick={() => handleMenuClick("/")}
           >
-            Trip
+            Аялал
           </Menu.Item>
           <Menu.Item
             key="2"
             icon={<CrownOutlined />}
             onClick={() => handleMenuClick("/trip/new")}
           >
-            Trip Build
+            Аялалын программ зохиох
           </Menu.Item>
           <Menu.Item
             key="3"
             icon={<ContactsOutlined />}
             onClick={() => handleMenuClick("/places")}
           >
-            Places
+            Үзэх газрууд
           </Menu.Item>
           <Menu.Item
             key="4"
             icon={<HomeOutlined />}
             onClick={() => handleMenuClick("/camps")}
           >
-            Camps
+            Амралтын газрууд
           </Menu.Item>
           <Menu.Item
             key="6"
             icon={<FileTextOutlined />}
             onClick={() => handleMenuClick("/bookings")}
           >
-            Bookings
+            Захиалга
           </Menu.Item>
           <Menu.Item key="7" icon={<LogoutOutlined />} onClick={handleLogout}>
-            Logout
+            Гарах
           </Menu.Item>
         </Menu>
       </Sider>

@@ -15,7 +15,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+ADMIN_SERVICE_URL = "http://admin-service:8001/api/admin/place/all/"
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -25,7 +25,8 @@ SECRET_KEY = 'django-insecure-t&oozw+a1-canqp(d%pa%%fy-&z2)8^#7b3bzb3xv$#n!aj%k&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+
 
 
 # Application definition
@@ -46,7 +47,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -67,21 +67,24 @@ DATABASES = {
     }
 }
 # settings.py
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']  # Add your frontend URL here
-CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
-CSRF_HEADER_NAME = 'X-CSRFToken'
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Replace with your frontend URL
-    "http://localhost:3001",  # Another example
+    "http://localhost:3001",
+    "http://localhost:8001",
+    "http://localhost:8002",
+    "http://localhost:8000",
+    "http://127.0.0.1:8001",
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:8002",
+
 ]
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 CORS_ALLOW_HEADERS = [
     'content-type',
     'authorization',
     'x-custom-header',
-    "X-CSRFToken",
     # other headers
 ]
 # settings.py

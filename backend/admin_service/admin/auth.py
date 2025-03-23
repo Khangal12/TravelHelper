@@ -15,16 +15,17 @@ class SessionAuthentication(BaseAuthentication):
                 token = token.split(' ')[1]  # Assumes token format 'Bearer <token>'
 
                 # Check if token exists in Redis cache
-                user_id = cache.get(f'user_session_{token}')
-                
-                if not user_id:
+                user_data= cache.get(f'user_session_{token}')
+
+                if user_data:
+                    user = type("User", (object,), user_data)
+                    request.user = user
+                    return (user, token)
+                else:
                     raise AuthenticationFailed('Invalid or expired token')
 
                 # Retrieve the user from the database
-                user = User.objects.get(id=user_id)
-
-                # If everything is fine, return the user and token
-                return (user, None)
+       
 
             except IndexError:
                 raise AuthenticationFailed('Token is malformed')

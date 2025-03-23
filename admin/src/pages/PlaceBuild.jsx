@@ -6,15 +6,15 @@ import useApi from "../hook/useApi";
 const { Title, Text } = Typography;
 
 const PlaceBuild = () => {
+  const {admin} = useApi()
   const [places, setPlaces] = useState([]);
   const navigate = useNavigate();
-  const placeApi = useApi().place;
 
   // Fetch places data from the Django API using axios
   useEffect(() => {
     const fetchPlaces = async () => {
       try {
-        const data = await placeApi.get();
+        const data = await admin.place.get();
         setPlaces(data);
       } catch (error) {
         console.error("Error fetching places:", error);
@@ -99,7 +99,7 @@ const PlaceBuild = () => {
                       display: "-webkit-box",
                       WebkitBoxOrient: "vertical",
                       overflow: "hidden",
-                      WebkitLineClamp: 5,
+                      WebkitLineClamp: 4,
                     }}
                   >
                     {place.description}

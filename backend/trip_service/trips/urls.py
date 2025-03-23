@@ -5,7 +5,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     # Camp views
-    path('', views.CampByPlacesAPIView.as_view(), name='camp_list_create'),
+    path('place/<int:pk>/', views.PlacesByDistance.as_view()),
+    path('trip/create/', views.TripCreateAPIView.as_view()),
 
 ]
 

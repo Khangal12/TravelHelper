@@ -6,6 +6,8 @@ class Trip(models.Model):
     end_date = models.DateField()
     description = models.TextField()
     static = models.BooleanField(default=False)
+    # total_price = models.IntegerField()
+    
 
     def __str__(self):
         return self.name
@@ -18,17 +20,7 @@ class Day(models.Model):
     date = models.DateField()
     title = models.CharField(max_length=200)
     description = models.TextField()
+    # price = models.IntegerField()
 
     def __str__(self):
         return f"Day {self.day_number} of {self.trip.name}"
-
-
-class Activity(models.Model):
-    day = models.ForeignKey(Day, related_name='activities', on_delete=models.CASCADE)
-    title = models.CharField(max_length=200)
-    description = models.TextField()
-    start_time = models.TimeField()
-    end_time = models.TimeField()
-
-    def __str__(self):
-        return self.title

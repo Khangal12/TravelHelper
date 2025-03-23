@@ -6,13 +6,13 @@ import useApi from "../hook/useApi";
 const { Title } = Typography;
 
 const Login = () => {
+  const {user} = useApi()
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const loginApi = useApi().user;
 
   const onFinish = async (values) => {
     setLoading(true);
-    const data = await loginApi.login(values);
+    const data = await user.user.login(values);
     if (data.token) {
       message.success("Login successful!");
       localStorage.setItem("token", data.token); // Fix: save the correct token
