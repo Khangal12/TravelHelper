@@ -1,149 +1,79 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import TripCard from "../components/Card";
-import { Row, Col, Pagination } from "antd";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { Row, Col, Pagination, Input, Spin } from "antd";
+import { useNavigate } from "react-router-dom";
+import useApi from "../hook/useApi";
+
+const { Search } = Input;
 
 const Trip = () => {
   const navigate = useNavigate();
-  const trips = [
-    {
-      id: 1,
-      image: "/images/nature2.jpg",
-      title: "Beach Getaway",
-      days: 5,
-      price: 1200,
-    },
-    {
-      id: 2,
-      image: "/images/nature1.jpg",
-      title: "Mountain Escape",
-      days: 7,
-      price: 1500,
-    },
-    {
-      id: 3,
-      image: "/images/nature3.jpg",
-      title: "City Tour",
-      days: 3,
-      price: 1000,
-    },
-    {
-      id: 3,
-      image: "/images/nature3.jpg",
-      title: "City Tour",
-      days: 3,
-      price: 1000,
-    },
-    {
-      id: 3,
-      image: "/images/nature3.jpg",
-      title: "City Tour",
-      days: 3,
-      price: 1000,
-    },
-    {
-      id: 3,
-      image: "/images/nature3.jpg",
-      title: "City Tour",
-      days: 3,
-      price: 1000,
-    },
-    {
-      id: 3,
-      image: "/images/nature3.jpg",
-      title: "City Tour",
-      days: 3,
-      price: 1000,
-    },
-    {
-      id: 3,
-      image: "/images/nature3.jpg",
-      title: "City Tour",
-      days: 3,
-      price: 1000,
-    },
-
-    {
-      id: 3,
-      image: "/images/nature3.jpg",
-      title: "City Tour",
-      days: 3,
-      price: 1000,
-    },
-    {
-      id: 3,
-      image: "/images/nature3.jpg",
-      title: "City Tour",
-      days: 3,
-      price: 1000,
-    },
-    {
-      id: 3,
-      image: "/images/nature3.jpg",
-      title: "City Tour",
-      days: 3,
-      price: 1000,
-    },
-    {
-      id: 3,
-      image: "/images/nature3.jpg",
-      title: "City Tour",
-      days: 3,
-      price: 1000,
-    },
-    {
-      id: 3,
-      image: "/images/nature3.jpg",
-      title: "City Tour",
-      days: 3,
-      price: 1000,
-    },
-    {
-      id: 3,
-      image: "/images/nature3.jpg",
-      title: "City Tour",
-      days: 3,
-      price: 1000,
-    },
-    {
-      id: 3,
-      image: "/images/nature3.jpg",
-      title: "City Tour",
-      days: 3,
-      price: 1000,
-    },
-  ];
-
-  const pageSize = 12;
+  const [trips, setTrips] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const currentTrips = trips.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
+  const [totalItems, setTotalItems] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const handleTripClick = (trip) => {
-    navigate(`trip/${trip.id}`);
-  };
+  const { trip } = useApi();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const response = await trip.trip.get(currentPage, searchTerm);
+        setTrips(response.results);
+        setTotalItems(response.count);
+      } catch (error) {
+        console.error("Error fetching trip data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [currentPage, searchTerm]);
+
+  const handleTripClick = (trip) => navigate(`trip/${trip.id}`);
+  const handlePageChange = (page) => setCurrentPage(page);
+  const handleSearch = (e) => setSearchTerm(e.target.value);
 
   return (
-    <div style={{ textAlign: "center" }}>
-      <Row gutter={[16, 16]} justify="center">
-        {currentTrips.map((trip) => (
-          <Col key={trip.id} xs={24} sm={12} md={8} lg={6} xl={4}>
-            <TripCard {...trip} onClick={() => handleTripClick(trip)} />
-          </Col>
-        ))}
-      </Row>
-
-      {/* Pagination Component */}
-      <Pagination
-        current={currentPage}
-        total={trips.length}
-        pageSize={pageSize}
-        onChange={(page) => setCurrentPage(page)}
-        style={{ marginTop: "20px" }}
+    <div style={{ textAlign: "center", padding: "20px" }}>
+      <Search
+        placeholder="Аялалын нэр хайх..."
+        allowClear
+        size="large"
+        onChange={handleSearch}
+        style={{ maxWidth: "400px", marginBottom: "20px" }}
       />
+
+      {loading ? (
+        <>
+          <Row>
+            <Spin size="large" />
+          </Row>
+        </>
+      ) : (
+        <>
+          <Row gutter={[12, 12]} justify="center">
+            {trips.map((trip) => (
+              <Col key={trip.id} xs={4} sm={4} md={4} lg={4} xl={6}>
+                <TripCard {...trip} onClick={() => handleTripClick(trip)} />
+              </Col>
+            ))}
+          </Row>
+          {totalItems > 8 && (
+            <Pagination
+              current={currentPage}
+              total={totalItems}
+              pageSize={8}
+              onChange={handlePageChange}
+              style={{ marginTop: "20px" }}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 };
+
 export default Trip;

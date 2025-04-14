@@ -82,7 +82,7 @@ CORS_ALLOW_HEADERS = [
 # settings.py
 
 # settings.py
-MEDIA_URL = 'http://localhost/media/'
+MEDIA_URL = 'http://localhost/media/'  # URL to serve media files
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 

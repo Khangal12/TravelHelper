@@ -9,19 +9,24 @@ import {
   Col,
   Select,
   DatePicker,
-  message
+  message,
+  Upload
 } from "antd";
+
 import SliderPlace from "../components/Slider";
 import useApi from "../hook/useApi";
 import moment from "moment";
 import MapComponent from "../components/MapComponent";
 import { useNavigate } from "react-router-dom";
+import { UploadOutlined } from "@ant-design/icons";
+import usePermissions from "../hook/usePermissions";
 const { Step } = Steps;
 const { Meta } = Card;
 const { RangePicker } = DatePicker;
 const { TextArea } = Input;
 
 const TripProgram = () => {
+  const { isUser, isSuperuser } = usePermissions()
   const navigate = useNavigate();
   const { admin } = useApi();
   const { trip } = useApi();
@@ -33,11 +38,13 @@ const TripProgram = () => {
   const [camps, setCamps] = useState([]);
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [selectedCamp, setSelectedCamp] = useState(null);
-  const [tripDates, setTripDates] = useState([moment(), moment()]);
+  const [tripDates, setTripDates] = useState([null, null]);
   const [loading, setLoading] = useState(true);
   const [tripTitle, setTripTitle] = useState("");
   const [tripDescription, setTripDescription] = useState("");
   const [isModalValid, setIsModalValid] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [capacity, setCapacity] = useState(1);
 
   useEffect(() => {
     setIsModalValid(
@@ -111,6 +118,14 @@ const TripProgram = () => {
       setCurrentStep(currentStep + 1);
       setSelectedCamp(null);
       setSelectedPlace(null);
+    }
+    else {
+      const stepData = {
+        place: selectedPlace,
+        camp: selectedCamp,
+      };
+      localStorage.setItem(`tripData_day_${currentStep}`, JSON.stringify(stepData));
+      handleSubmit();
     }
   };
 
@@ -201,17 +216,23 @@ const TripProgram = () => {
           });
         }
       }
-      // Gather all the trip data
-      const tripDetails = {
-        title: tripTitle,
-        description: tripDescription,
-        startDate: tripDates[0].format("YYYY-MM-DD"),
-        endDate: tripDates[1].format("YYYY-MM-DD"),
-        days: days,
-        itinerary: itinerary,
-      };
 
-      const response = await trip.trip.createTrip(tripDetails);
+      const formData = new FormData();
+      formData.append('title', tripTitle);
+      formData.append('description', tripDescription);
+      formData.append('startDate', tripDates[0].format("YYYY-MM-DD"));
+      formData.append('endDate', tripDates[1].format("YYYY-MM-DD"));
+      formData.append('days', days);
+      formData.append('itinerary', JSON.stringify(itinerary));
+      if (isSuperuser) {
+        formData.append('capacity', capacity);
+      }
+
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
+
+      const response = await trip.trip.createTrip(formData);
       if (response.trip_id) {
         for (let i = 0; i < days; i++) {
           localStorage.removeItem(`tripData_day_${i}`);
@@ -229,7 +250,7 @@ const TripProgram = () => {
   return (
     <div>
       <Modal
-        visible={showModal}
+        open={showModal}
         onCancel={handleClose}
         onOk={handleOk}
       >
@@ -246,7 +267,7 @@ const TripProgram = () => {
         <div style={{ marginBottom: 20 }}>
           <strong>Аялах огноо оруулна уу</strong>
           <RangePicker
-            value={tripDates}
+            // value={tripDates}
             onChange={handleDateChange}
             style={{ width: "100%" }}
             required
@@ -264,7 +285,21 @@ const TripProgram = () => {
             required
           />
         </div>
-        <div style={{ marginBottom: 20 }}>
+        {
+          isSuperuser && (
+            <div style={{ marginBottom: 10 }}>
+              <strong>Хүний тоо</strong>
+              <Input
+                type="number"
+                min={1}
+                value={capacity}
+                onChange={(e) => setCapacity(e.target.value)}
+                required
+              />
+            </div>
+          )
+        }
+        <div style={{ marginBottom: 30 }}>
           <strong>Аялалын тайлбар</strong>
           <TextArea
             rows={4}
@@ -273,6 +308,22 @@ const TripProgram = () => {
             required
           />
         </div>
+        <div style={{ marginBottom: 30, display: "flex", justifyContent: "space-between" }}>
+          {/* <strong>Аялах зураг оруулна уу</strong> */}
+          <Upload
+            listType="picture"
+            beforeUpload={(file) => {
+              setImageFile(file);
+              return false; // Prevent automatic upload
+            }}
+            accept="image/*"
+            maxCount={1} // Only allow one file
+            onRemove={() => setImageFile(null)}
+          >
+            <Button icon={<UploadOutlined />}>Зураг оруулах</Button>
+          </Upload>
+        </div>
+
       </Modal>
 
       <Steps
@@ -288,10 +339,10 @@ const TripProgram = () => {
       <div style={{ width: "100%" }}>
         <Row gutter={[64, 64]}>
           <Col span={12}>
-            <Card title={`Place to visit`} style={{ width: "100%" }}>
+            <Card title={`Үзэсгэлэнт газар`} style={{ width: "100%" }}>
               <div style={{ marginBottom: 10 }}>
                 <Select
-                  placeholder="Select a Place"
+                  placeholder="Үзэсгэлэнт газар"
                   allowClear
                   value={selectedPlace}
                   className="w-100"
@@ -333,7 +384,7 @@ const TripProgram = () => {
           </Col>
 
           <Col span={12}>
-            <Card title={`Camp's / Hotel's`} style={{ width: "100%" }}>
+            <Card title={`Амралтын газар болон буудал`} style={{ width: "100%" }}>
               <div style={{ marginBottom: 10 }}>
                 <Select
                   value={selectedCamp}
@@ -383,7 +434,7 @@ const TripProgram = () => {
           Буцах
         </Button>
         {currentStep === days - 1 ? (
-          <Button type="primary" onClick={handleSubmit}>
+          <Button type="primary" onClick={handleNext}>
             Хадгалах
           </Button>
         ) : (

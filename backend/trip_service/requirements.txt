@@ -10,3 +10,4 @@ django-environ>=0.8.0,<1.0.0  # For environment variable management (optional)
 Pillow>=8.0.0
 pika
 requests
+reportlab

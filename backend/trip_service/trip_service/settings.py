@@ -15,7 +15,9 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-ADMIN_SERVICE_URL = "http://admin-service:8001/api/admin/place/all/"
+ADMIN_SERVICE_URL = "http://admin-service:8001/api/admin/"
+BOOKING_SERVICE_URL = "http://booking-service:8003/api/booking/"
+USER_SERVICE_URL = "http://user-service:8000/api/users/detail/"
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -82,14 +84,20 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 CORS_ALLOW_HEADERS = [
-    'content-type',
+    'accept',
+    'accept-encoding',
     'authorization',
-    'x-custom-header',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-requested-with',
     # other headers
 ]
 # settings.py
 
-MEDIA_URL = '/media/'
+MEDIA_URL = 'http://localhost/media/'
+
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 

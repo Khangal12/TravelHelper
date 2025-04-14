@@ -77,7 +77,7 @@ const LocationSelector = ({ onLocationSelect }) => {
 };
 
 const PlaceAdd = () => {
-  const {admin} = useApi()
+  const { admin } = useApi()
   const navigate = useNavigate();
 
   const [currentStep, setCurrentStep] = useState(0);
@@ -126,11 +126,11 @@ const PlaceAdd = () => {
       try {
         // Send a POST request to the Django API
         const data = await admin.place.post(formData);
-        message.success("Place added successfully!");
-        setImage(null);
-        setLocation(null);
-        setPlaceDetails(null);
-        navigate("/places");
+        message.success("Амжилттай!");
+        // setImage(null);
+        // setLocation(null);
+        // setPlaceDetails(null);
+        navigate(-1);
       } catch (error) {
         message.error("Failed to add place. Please try again.");
         console.error(error);
@@ -140,10 +140,10 @@ const PlaceAdd = () => {
 
   const steps = [
     {
-      title: "Choose Location",
+      title: "Сонгох",
       content: (
         <div>
-          <h3>Select a Location on the Map</h3>
+          <h4>Газрын зураг дээр зааж өгнө үү</h4>
           <MapContainer
             center={[47.5, 105.35]}
             zoom={8}
@@ -155,24 +155,24 @@ const PlaceAdd = () => {
       ),
     },
     {
-      title: "Add Details",
+      title: "Бөглөх",
       content: (
         <Form layout="vertical">
-          <Form.Item label="Place Name" required>
+          <Form.Item label="Газрын нэр" required>
             <Input
               name="name"
               value={placeDetails.name}
               onChange={handleInputChange}
             />
           </Form.Item>
-          <Form.Item label="Description" required>
+          <Form.Item label="Тайлбар" required>
             <Input.TextArea
               name="description"
               value={placeDetails.description}
               onChange={handleInputChange}
             />
           </Form.Item>
-          <Form.Item label="Upload Image">
+          <Form.Item label="Зураг оруулах">
             <Upload
               name="image"
               showUploadList={true} // Disable the automatic file list display
@@ -181,7 +181,7 @@ const PlaceAdd = () => {
                 return false; // Prevent automatic upload
               }}
             >
-              <Button>Click to Upload</Button>
+              <Button>Зураг оруулах</Button>
             </Upload>
           </Form.Item>
         </Form>
@@ -191,7 +191,7 @@ const PlaceAdd = () => {
 
   return (
     <div>
-      <h2>Add a New Place</h2>
+      <h2>Газар оруулах</h2>
       <Steps current={currentStep}>
         {steps.map((step, index) => (
           <Step key={index} title={step.title} />
@@ -206,15 +206,15 @@ const PlaceAdd = () => {
           gap: "10px",
         }}
       >
-        {currentStep > 0 && <Button onClick={prev}>Previous</Button>}
+        {currentStep > 0 && <Button onClick={prev}>Буцах</Button>}
         {currentStep < steps.length - 1 && (
           <Button type="primary" onClick={next}>
-            Next
+            Дараах
           </Button>
         )}
         {currentStep === steps.length - 1 && (
           <Button type="primary" onClick={handleSubmit}>
-            Submit
+            Хадгалах
           </Button>
         )}
       </div>

@@ -1,27 +1,42 @@
 import React, { use, useEffect, useState } from "react";
-import { Card, Row, Col, Typography, Button } from "antd";
+import { Card, Row, Col, Typography, Button, Input, message } from "antd";
+import { DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from "react-router-dom";
 import useApi from "../hook/useApi";
-
+import usePermissions from "../hook/usePermissions";
 const { Title, Text } = Typography;
+const { Search } = Input
 
 const CampBuild = () => {
+  const { isUser } = usePermissions()
   const { admin } = useApi()
   const [places, setPlaces] = useState([]);
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleDelete = async (id) => {
+    try {
+      await admin.camp.delete(id);
+      message.success("Амжилттай устгагдлаа");
+      // Remove the deleted camp from the state
+      setPlaces(places.filter(place => place.id !== id));
+    } catch (error) {
+      console.error("Error deleting camp:", error);
+    }
+  };
 
   // Fetch places data from the Django API using axios
   useEffect(() => {
-    const fetchPlaces = async () => {
+    const fetchPlaces = async (query = '') => {
       try {
-        const response = await admin.camp.get();
+        const response = await admin.camp.get(query);
         setPlaces(response);
       } catch (error) {
         console.error("Error fetching places:", error);
       }
     };
-    fetchPlaces();
-  }, []);
+    fetchPlaces(searchTerm);
+  }, [searchTerm]);
 
   return (
     <div
@@ -31,10 +46,21 @@ const CampBuild = () => {
       }}
     >
       {/* Add Button */}
-      <div style={{ textAlign: "right", marginBottom: "20px" }}>
-        <Button type="primary" size="large" onClick={() => navigate(`new`)}>
-          Add Camps
-        </Button>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px", marginLeft: "6.5rem", marginRight: "6.5rem" }}>
+        <Search
+          placeholder="Газрын нэр"
+          allowClear
+          enterButton="Хайх"
+          size="large"
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ width: "300px" }}
+        />
+        {
+          !(isUser) &&
+          <Button type="primary" size="large" onClick={() => navigate(`new`)}>
+            Нэмэх
+          </Button>
+        }
       </div>
 
       {/* Place Cards */}
@@ -118,15 +144,23 @@ const CampBuild = () => {
                         fontWeight: "500",
                       }}
                     >
-                      Capacity: {place.capacity}
+                      Багтаамж: {place.capacity}
                     </Text>
 
-                    {/* "More" Button */}
-                    <Button
-                      onClick={() => navigate(`/camps/${place.id}`)} // Adjust the navigation path accordingly
-                    >
-                      More
-                    </Button>
+                    <div className="d-flex gap-3">
+                      <Button
+                        onClick={() => navigate(`/camps/${place.id}`)} // Adjust the navigation path accordingly
+                      >
+                        Дэлгэрэнгүй
+                      </Button>
+                      {
+                        !isUser && <DeleteOutlined
+                        style={{ fontSize: '24px', color: 'red', cursor: 'pointer' }}
+                        onClick={() => handleDelete(place.id)}
+                      />
+                      }
+                      
+                    </div>
                   </Row>
                 </Col>
               </Row>

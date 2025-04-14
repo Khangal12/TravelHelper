@@ -3,13 +3,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Camp, Place,Room
-from .serializers import CampSerializer, PlaceSerializer,CampDetailSerializer, LoginSerializer
+from .serializers import CampSerializer, PlaceSerializer,CampDetailSerializer, LoginSerializer,RoomSerializer
 from django.http import JsonResponse
 from rest_framework.exceptions import NotFound
 from django.contrib.auth import authenticate, login
 from django.core.cache import cache
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .auth import SessionAuthentication
+from django.db.models import Q
+import os
 
 class LoginView(APIView):
     permission_classes = [AllowAny] 
@@ -42,18 +44,25 @@ class CampListCreateAPIView(APIView):
     authentication_classes = [SessionAuthentication]  # Use custom authentication
     permission_classes = [IsAuthenticated]  # 
     def get(self, request):
+        search_query = request.GET.get('search', '')
+        
         camps = Camp.objects.all()
+
+        if search_query:
+            camps = camps.filter(
+                Q(name__icontains=search_query)
+            )
         serializer = CampSerializer(camps, many=True, context={'request': request})
         return Response(serializer.data)
 
     def post(self, request):
         data =request.data
-        print(data)
         place_id = data.get('place')
         name = data.get('name')
         description = data.get('description')
         capacity = data.get('capacity')
         image = data.get('image')
+        print(image)
         room_count = int(data.get('roomcount'))
 
         camp = Camp.objects.create(
@@ -78,6 +87,7 @@ class CampListCreateAPIView(APIView):
                 image=room_image,
             )
         return JsonResponse({'status': 'success', 'message': 'Camp and rooms added successfully!'})
+    
 
 class CampDetailAPIView(APIView):
     authentication_classes = [SessionAuthentication]  # Use custom authentication
@@ -105,32 +115,34 @@ class CampDetailAPIView(APIView):
 
     def delete(self, request, pk):
         camp = Camp.objects.get(pk=pk)
+        rooms = Room.objects.filter(camp=camp)
+        rooms.delete()
         camp.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)
 
 class PlaceListView(APIView):
     authentication_classes = [SessionAuthentication]  # Use custom authentication
     permission_classes = [IsAuthenticated]  # 
     def get(self, request):
+        search_query = request.GET.get('search', '')
         places = Place.objects.all()
+        if search_query:
+            places = places.filter(
+                Q(title__icontains=search_query)
+            )
         serializer = PlaceSerializer(places, many=True, context={'request': request})
         return Response(serializer.data)
 
     def post(self, request):
 
-            # Initialize the serializer with the incoming request data
             serializer = PlaceSerializer(data=request.data)
 
-            # Check if the serializer is valid
             if serializer.is_valid():
-                # Save the data if it's valid
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
-                # Print the errors if the serializer is invalid
                 print("Serializer Errors:", serializer.errors)
 
-                # Return the errors in the response
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CampByPlacesAPIView(APIView):
@@ -156,3 +168,22 @@ class PlaceDetailView(APIView):
         places = Place.objects.filter(id=pk)
         serializer = PlaceSerializer(places, many=True, context={'request': request})
         return Response(serializer.data)
+    def delete(self, request,pk=None):
+        place = Place.objects.get(pk=pk)
+        if place.image:
+            if os.path.isfile(place.image.path):
+                os.remove(place.image.path)
+        place.delete()
+        return Response(status=status.HTTP_200_OK)
+
+class RoomDetail(APIView):
+    authentication_classes = [SessionAuthentication]  # Use custom authentication
+    def get(self, request, pk):
+        try:
+            room = Room.objects.get(pk=pk)
+        except Room.DoesNotExist:
+            raise NotFound(detail="Room not found.")
+
+        serializer = RoomSerializer(room,context={'request': request})
+        # Return the serialized data in the response
+        return Response(serializer.data, status=status.HTTP_200_OK)

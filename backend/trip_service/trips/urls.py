@@ -7,8 +7,11 @@ urlpatterns = [
     # Camp views
     path('place/<int:pk>/', views.PlacesByDistance.as_view()),
     path('trip/create/', views.TripCreateAPIView.as_view()),
+    path('trip/', views.TripAPIView.as_view()),
+    path('detail/<int:pk>/', views.TripDetailAPIView.as_view()),
+    path('pdf/', views.PDFAPIView.as_view()),
 
 ]
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL)

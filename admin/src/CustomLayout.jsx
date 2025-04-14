@@ -9,6 +9,7 @@ import {
   ContactsOutlined,
   CrownOutlined,
 } from "@ant-design/icons";
+import usePermissions from "./hook/usePermissions";
 
 const { Header, Sider, Content } = Layout;
 
@@ -16,6 +17,9 @@ const CustomLayout = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
+  const { hasPermission, loadings, isSuperuser, isUser, isStaff } = usePermissions();
+
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,6 +54,9 @@ const CustomLayout = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
+  if (loadings) return <div>Loading navbar...</div>;
+
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sider
@@ -67,28 +74,26 @@ const CustomLayout = ({ children }) => {
             fontSize: "18px",
           }}
         >
-          Blue Gobi Tours
+          Travel Helper
         </div>
         <Menu theme="dark" mode="inline">
-          <Menu.Item
-            key="1"
-            icon={<DashboardOutlined />}
-            onClick={() => handleMenuClick("/")}
-          >
-            Аялал
-          </Menu.Item>
-          <Menu.Item
-            key="2"
-            icon={<CrownOutlined />}
-            onClick={() => handleMenuClick("/trip/new")}
-          >
-            Аялалын программ зохиох
-          </Menu.Item>
-          <Menu.Item
-            key="3"
-            icon={<ContactsOutlined />}
-            onClick={() => handleMenuClick("/places")}
-          >
+
+          {(isSuperuser || isUser) && (
+            <Menu.Item
+              key="1"
+              icon={<DashboardOutlined />}
+              onClick={() => handleMenuClick("/")}
+            >
+              Аялал
+            </Menu.Item>
+          )
+          }
+          {(isSuperuser || isUser) && (
+            <Menu.Item key="2" icon={<CrownOutlined />} onClick={() => handleMenuClick("/trip/new")}>
+              Аялалын программ зохиох
+            </Menu.Item>
+          )}
+          <Menu.Item key="3" icon={<ContactsOutlined />} onClick={() => handleMenuClick("/places")}>
             Үзэх газрууд
           </Menu.Item>
           <Menu.Item
@@ -98,13 +103,19 @@ const CustomLayout = ({ children }) => {
           >
             Амралтын газрууд
           </Menu.Item>
-          <Menu.Item
-            key="6"
-            icon={<FileTextOutlined />}
-            onClick={() => handleMenuClick("/bookings")}
-          >
-            Захиалга
-          </Menu.Item>
+          {(hasPermission("admin") || isUser) && (
+            <Menu.Item
+              key="6"
+              icon={<FileTextOutlined />}
+              onClick={() => handleMenuClick("/bookings")}
+            >
+              Захиалга
+            </Menu.Item>)}
+          {isSuperuser && (
+            <Menu.Item key="8" icon={<FileTextOutlined />} onClick={() => handleMenuClick("/auth")}>
+              Эрх
+            </Menu.Item>
+          )}
           <Menu.Item key="7" icon={<LogoutOutlined />} onClick={handleLogout}>
             Гарах
           </Menu.Item>
@@ -112,7 +123,7 @@ const CustomLayout = ({ children }) => {
       </Sider>
       <Layout>
         <Header style={{ background: "#fff", padding: 0, textAlign: "center" }}>
-          Admin Dashboard
+          {isSuperuser && 'Админ'} {isUser && 'Хэрэглэгч'} {isStaff && 'Байгууллага'} website
         </Header>
         <Content style={{ margin: "16px" }}>
           <Outlet />

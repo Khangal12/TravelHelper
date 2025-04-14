@@ -66,17 +66,17 @@ const CampAdd = () => {
 
   return (
     <div>
-      <h2>Add New Camp</h2>
+      <h2>Шинэ амралтын газар нэмэх</h2>
       <Form form={form} onFinish={handleSubmit} layout="vertical">
         <Row gutter={24}>
           {/* Row 1 */}
           <Col span={12}>
             <Form.Item
-              label="Around Place"
+              label="Ойролцоох газар"
               name="place"
-              rules={[{ required: true, message: "Please select a place!" }]}
+              rules={[{ required: true, message: "Газараа сонгон уу!" }]}
             >
-              <Select placeholder="Select a Place" allowClear>
+              <Select placeholder="Газар" allowClear>
                 {places.length > 0 ? (
                   places.map((place) => (
                     <Select.Option key={place.id} value={place.id}>
@@ -99,7 +99,7 @@ const CampAdd = () => {
 
           <Col span={12}>
             <Form.Item
-              label="Name"
+              label="Амралтын газрын нэр"
               name="name"
               rules={[
                 { required: true, message: "Please enter the camp name!" },
@@ -114,7 +114,7 @@ const CampAdd = () => {
           {/* Row 2 */}
           <Col span={12}>
             <Form.Item
-              label="Description"
+              label="Дэлгэрэнгүй"
               name="description"
               rules={[
                 {
@@ -129,7 +129,7 @@ const CampAdd = () => {
 
           <Col span={12}>
             <Form.Item
-              label="Capacity"
+              label="Багтаамж"
               name="capacity"
               rules={[
                 { required: true, message: "Please enter the camp capacity!" },
@@ -140,7 +140,7 @@ const CampAdd = () => {
           </Col>
           <Col span={6}>
             <Form.Item
-              label={`image`}
+              label={`Зураг`}
               name={`image`}
               valuePropName="fileList"
               getValueFromEvent={({ fileList }) => fileList}
@@ -154,9 +154,8 @@ const CampAdd = () => {
               <Upload
                 listType="picture"
                 beforeUpload={() => false} // Prevent automatic upload
-                accept="image/*"
               >
-                <Button icon={<UploadOutlined />}>Upload Image</Button>
+                <Button icon={<UploadOutlined />}>Оруулах</Button>
               </Upload>
             </Form.Item>
           </Col>
@@ -166,7 +165,7 @@ const CampAdd = () => {
           {/* Select number of rooms */}
           <Col span={12}>
             <Form.Item
-              label="Number of Rooms"
+              label="Өрөөний тоо"
               name="roomCount"
               rules={[
                 { required: true, message: "Please select number of rooms!" },
@@ -175,7 +174,7 @@ const CampAdd = () => {
               <Select defaultValue={roomCount} onChange={handleRoomCountChange}>
                 {roomOptions.map((roomNumber) => (
                   <Select.Option key={roomNumber} value={roomNumber}>
-                    {roomNumber} Room(s)
+                    {roomNumber} өрөө
                   </Select.Option>
                 ))}
               </Select>
@@ -190,7 +189,7 @@ const CampAdd = () => {
             <Row key={roomIndex} gutter={24}>
               <Col span={6}>
                 <Form.Item
-                  label={`Room ${roomIndex} Name`}
+                  label={`Өрөө №${roomIndex} нэр`}
                   name={`room_${roomIndex}_name`}
                   rules={[
                     {
@@ -205,7 +204,7 @@ const CampAdd = () => {
 
               <Col span={6}>
                 <Form.Item
-                  label={`Room ${roomIndex} Capacity`}
+                label={`Өрөө №${roomIndex} багтаамж`}
                   name={`room_${roomIndex}_capacity`}
                   rules={[
                     {
@@ -220,7 +219,7 @@ const CampAdd = () => {
 
               <Col span={6}>
                 <Form.Item
-                  label={`Room ${roomIndex} Price`}
+                  label={`Өрөө №${roomIndex} үнэ`}
                   name={`room_${roomIndex}_price`}
                   rules={[
                     {
@@ -235,7 +234,7 @@ const CampAdd = () => {
 
               <Col span={6}>
                 <Form.Item
-                  label={`Room ${roomIndex} Image`}
+                  label={`Өрөө №${roomIndex} зураг`}
                   name={`room_${roomIndex}_image`}
                   valuePropName="fileList"
                   getValueFromEvent={({ fileList }) => fileList}
@@ -249,9 +248,8 @@ const CampAdd = () => {
                   <Upload
                     listType="picture"
                     beforeUpload={() => false} // Prevent automatic upload
-                    accept="image/*"
                   >
-                    <Button icon={<UploadOutlined />}>Upload Image</Button>
+                    <Button icon={<UploadOutlined />}>Өрөөний зураг</Button>
                   </Upload>
                 </Form.Item>
               </Col>
@@ -261,7 +259,7 @@ const CampAdd = () => {
 
         <Form.Item>
           <Button type="primary" htmlType="submit" block>
-            Add Camp
+            Хадгалах
           </Button>
         </Form.Item>
       </Form>

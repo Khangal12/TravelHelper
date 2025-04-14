@@ -1,0 +1,12 @@
+Django>=4.0,<5.0
+psycopg2-binary>=2.9,<3.0 # PostgreSQL adapter
+django-redis>=5.0.0,<6.0.0  # For Redis caching
+djangorestframework>=3.12,<4.0  # If you're using DRF for APIs
+celery>=5.0,<6.0  # If you have background tasks using Celery
+redis>=4.0,<5.0  # Redis client
+gunicorn>=20.1,<21.0  # WSGI server for running the Django app in production
+django-cors-headers>=3.7,<4.0  # For handling CORS
+django-environ>=0.8.0,<1.0.0  # For environment variable management (optional)
+Pillow>=8.0.0
+pika
+requests

@@ -44,18 +44,15 @@ const MapComponent = (id) => {
     }
   };
 
-  // Load data from localStorage and fetch coordinates
   useEffect(() => {
     const loadData = async () => {
       const data = readFromLocalStorage();
 
-      // Fetch coordinates for each place
       const places = [];
       for (const dayData of data) {
         if (dayData.place) {
           const placeDetails = await fetchPlaceDetails(dayData.place);
           if (placeDetails && Array.isArray(placeDetails)) {
-            // Iterate over the array of placeDetails
             placeDetails.forEach((place) => {
               if (place.latitude && place.longitude) {
                 places.push({
@@ -75,7 +72,6 @@ const MapComponent = (id) => {
     loadData();
   }, [id]);
 
-  // Default center for the map (Mongolia coordinates)
   const defaultCenter = [46.8625, 103.8467]; // Ulaanbaatar, Mongolia
   const defaultZoom = 6; // Zoom level to show most of Mongolia
 
@@ -83,12 +79,11 @@ const MapComponent = (id) => {
     return <p>Loading map...</p>;
   }
 
-  // Create an array of LatLng points for the Polyline
   const polylinePositions = placesWithCoords.map((place) => [place.lat, place.lon]);
 
   return (
     <div style={{ height: "500px", width: "100%" }}>
-      <h2>Places on Map</h2>
+      <h2>Газрын зураг</h2>
       <MapContainer center={defaultCenter} zoom={defaultZoom} style={{ height: "100%", width: "100%" }}>
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -107,7 +102,6 @@ const MapComponent = (id) => {
             </Popup>
           </Marker>
         ))}
-        {/* Add a Polyline to connect the markers */}
         <Polyline
           positions={polylinePositions}
           color="blue"

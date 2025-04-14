@@ -8,14 +8,14 @@ import {
 const { Meta } = Card;
 const { Title, Text } = Typography;
 
-const TripCard = ({ image, title, days, price, onClick }) => {
+const TripCard = ({ created_user, name, days,image ,total_price, onClick }) => {
   return (
     <Card
       hoverable
-      style={{ fontSize: "12px", width: 150 }}
+      style={{ fontSize: "12px", width: 250 }}
       cover={
         <img
-          alt={title}
+          alt={name}
           src={image}
           style={{ height: "100px", objectFit: "cover" }}
         />
@@ -33,7 +33,7 @@ const TripCard = ({ image, title, days, price, onClick }) => {
               display: "block",
             }}
           >
-            {title}
+            {name}
           </span>
         }
       />
@@ -68,7 +68,7 @@ const TripCard = ({ image, title, days, price, onClick }) => {
           <DollarCircleOutlined
             style={{ marginRight: "5px", color: "#52c41a" }}
           />{" "}
-          ${price}
+          ${total_price}
         </Text>
       </div>
     </Card>

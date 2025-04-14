@@ -11,7 +11,7 @@ urlpatterns = [
     path('place/all/', views.PlaceListView.as_view(), name='place_detail'),
     path('place/<int:pk>/', views.PlaceDetailView.as_view(), name='place_detail'),
     path('login/', views.LoginView.as_view(), name='login'),
-
+    path('room/detail/<int:pk>/', views.RoomDetail.as_view(), name='room_detail'),
 ]
 
 if settings.DEBUG:
