@@ -6,11 +6,10 @@ import { message } from "antd"; // ✅ Use Ant Design for notifications
 function useApi() {
   const navigate = useNavigate();
 
-  // Create Axios instance
   const adminInstance = axios.create({
-    baseURL: process.env.REACT_APP_API_URL + '/api/admin',  // Update the base URL to Nginx API gateway path
+    baseURL: process.env.REACT_APP_API_URL + '/api/admin',
     headers: {
-      "Content-Type": "application/json", // This will be replaced by the FormData headers when needed
+      "Content-Type": "application/json",
     },
   });
 
@@ -37,18 +36,17 @@ function useApi() {
 
   const responseInterceptor = (error) => {
     if (error.response) {
-      // Handle 403 error (Session expired)
       if (error.response.status === 403) {
         localStorage.removeItem("token");
         navigate("/login");
         message.error("Session expired. Please log in again.");
       }
-      
-      // Handle 400 error (Bad Request)
       else if (error.response.status === 400) {
         message.error(error.response.data?.error || 'Bad Request');
       }
-      // Handle other errors
+      else if (error.response.status === 401) {
+        message.error(error.response.data?.error || 'Invalid credintials');
+      }
       else {
         message.error(`Error: ${error.response.status} - ${error.response.data?.message || 'An error occurred'}`);
       }
@@ -122,6 +120,9 @@ function useApi() {
         get: (page, search) => tripInstance.get(`/trip/?page=${page}&search=${search}`),
         getDetail: (id) => tripInstance.get(`/detail/${id}/`),
         pdf: (data) => tripInstance.post(`/pdf/`,data),
+      },
+      chat:{
+        chat: (data) => tripInstance.post(`/chat/`,data),
       }
     },
     booking:{

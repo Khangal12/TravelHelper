@@ -4,6 +4,7 @@ from django.contrib.auth.models import User,Permission
 from .models import Profile
 from .serializers import UserSerializer, ProfileSerializer, SignUpSerializer, UserListSerializer
 import secrets
+import requests
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import  permission_classes
 from rest_framework.views import APIView
@@ -84,16 +85,9 @@ class LoginAPIView(APIView):
         if serializer.is_valid():
             username = serializer.validated_data['username']
             password = serializer.validated_data['password']
-
-            # Authenticate the user
             user = authenticate(username=username, password=password)
             if user:
-
-                # If authentication is successful, store session/token in Redis
-                # Store user id and token or session information in Redis
-                token = secrets.token_hex(32)  # You can use Django's built-in TokenAuthentication or generate your own
-
-                # Optionally set an expiration time for the session
+                token = secrets.token_hex(32)
                 cache.set(f'user_session_{token}', user.id, timeout=1800)  # 1 hour
 
                 return Response({'message': 'Login successful', 'token': token}, status=status.HTTP_200_OK)
@@ -122,13 +116,14 @@ class ValidateTokenAPIView(APIView):
 
 class SignUpAPIView(APIView):
     permission_classes = [AllowAny]
-    def post (self,request):
-        serializer = UserSerializer(data=request.data)
+    def post(self, request):
+        serializer = SignUpSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
             return Response({"user": serializer.data}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        first_error = next(iter(serializer.errors.values()))[0]
+        return Response({"message": first_error}, status=status.HTTP_400_BAD_REQUEST)
 class ForgotPasswordAPIView(APIView):
     permission_classes = [AllowAny] 
     def post(self, request):

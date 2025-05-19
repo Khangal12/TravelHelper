@@ -4,12 +4,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import useApi from "../hook/useApi";
 import ButtonGroup from "antd/es/button/button-group";
 import usePermissions from "../hook/usePermissions";
+import axios from "axios";
 
 const BookingDetail = () => {
     const { hasPermission, isSuperuser } = usePermissions();
     const { id } = useParams();
     const navigate = useNavigate();
     const { booking } = useApi();
+    const { trip } = useApi();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
 
@@ -25,6 +27,32 @@ const BookingDetail = () => {
         }
     };
 
+    const createPdf = async () => {
+        try {
+            axios.post('http://localhost/api/trip/pdf/', data, {
+                withCredentials: true,  // If using cookies
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                responseType: 'blob'  // Required for file downloads
+            })
+                .then(response => {
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', 'itinerary.pdf');
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                })
+                .catch(error => {
+                    console.error('Download failed:', error);
+                });
+        } catch (error) {
+            console.error("Error fetching place and camp data:", error);
+        }
+    };
+
     useEffect(() => {
         fetchBookingDetail();
     }, [id]);
@@ -36,7 +64,7 @@ const BookingDetail = () => {
         <div>
             <Card
                 title={<Button onClick={() => navigate(-1)}>Буцах</Button>}
-                extra={<Button type="primary" onClick={() => navigate(-1)}>Хэвлэх</Button>}
+                extra={<Button type="primary" onClick={() => createPdf()}>Хэвлэх</Button>}
             >
                 <Descriptions bordered column={1}>
                     <Descriptions.Item label="Аялалын ID">{data.trip_id}</Descriptions.Item>
@@ -67,7 +95,7 @@ const BookingDetail = () => {
                         // Add the day price of $100
                         const totalPrice = totalRoomPrice + 100;
                         return (
-                            <Card key={camp.camp_id} title={<>{camp.details.name} - Өдөр {camp.day}</>} style={{ marginTop: 20 }}>
+                            <Card key={camp.camp_id} title={<>{camp.details.name} - Өдөр {camp.day + 1}</>} style={{ marginTop: 20 }}>
                                 <Descriptions bordered column={1}>
                                     <Descriptions.Item label="Аялах газар">{camp.details.place}</Descriptions.Item>
                                     <Descriptions.Item label="Огноо">{camp.checkin_date} - {camp.checkout_date}</Descriptions.Item>

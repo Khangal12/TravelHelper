@@ -18,14 +18,25 @@ const SignUp = () => {
     }
 
     setLoading(true);
-    const data = await user.user.signup(values); // Assume there's a signup API
-    if (data.email) {
-      message.success("Амжилттай бүргүүллээ");
-      navigate("/login");
-    } else {
-      message.error(data.error || "!");
+    try {
+      const data = await user.user.signup(values); // Assume there's a signup API
+      if (data.user) {
+        message.success("Амжилттай бүргүүллээ");
+        navigate("/login");
+      } else {
+        message.error(data || "!");
+      }
+    } catch (error) {
+      const msg =
+    error?.response?.data?.message || // single
+    error?.response?.data?.messages?.join(" ") || // multiple
+    "Signup failed!";
+  message.error(msg);
     }
-    setLoading(false);
+    finally {
+      setLoading(false);
+    }
+   
   };
 
   return (

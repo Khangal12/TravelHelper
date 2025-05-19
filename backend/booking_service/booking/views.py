@@ -69,7 +69,7 @@ class BookingCreateView(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         data = request.data
-
+        print(data)
         try:
             start_date_str = data['start_date']
             end_date_str = data['end_date']
@@ -109,36 +109,30 @@ class BookingCreateView(generics.ListCreateAPIView):
         serializer = self.get_serializer(data=booking_data)
         if serializer.is_valid():
             try:
-                # Wrap everything inside a transaction.atomic() block
                 with transaction.atomic():
-                    # Save the booking object
                     booking = serializer.save()
-
-                    # Iterate over the camps to create the booking camps and rooms
                     for camp in camps:
                         capacity = camp['capacity']
                         day = camp['day_number']
-                        day_start = start_date + timedelta(days=day)  # Now this works
 
                         total_people_in_camp = BookingCamp.objects.filter(
                             camp_id=camp['camp'],
-                            checkin_date=day_start,
+                            checkin_date=start_date,
                         ).aggregate(Sum('people_count'))['people_count__sum'] or 0
 
                         if total_people_in_camp + people_count > capacity:
-                            raise Exception(f"{camp['camp_name']} дээр {day_start} өдөр багтаамж хэтэрсэн")
+                            raise Exception(f"{start_date} өдөр camp дээр багтаамж хэтэрсэн")
 
-                        # Create the booking camp
                         booking_camp = BookingCamp.objects.create(
                             booking=booking,
                             camp_id=camp['camp'],
                             people_count=people_count,
-                            checkin_date=day_start,
-                            checkout_date=day_start + timedelta(days=1),
+                            checkin_date=start_date,
+                            checkout_date=start_date + timedelta(days=1),
                         )
+                        print(start_date)
+                        start_date = start_date + timedelta(days=1)
 
-                        # Create the booking rooms
-                        print(camp)
                         for room in camp['rooms']:
                             BookingRoom.objects.create(
                                 booking_camp=booking_camp,
@@ -149,7 +143,6 @@ class BookingCreateView(generics.ListCreateAPIView):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
             except Exception as e:
-                # If any error occurs, rollback the transaction
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -17,7 +17,7 @@ const TripItinerary = ({ itinerary, onTotalPriceChange,onSelectedRoomsChange }) 
   const [selectedRooms, setSelectedRooms] = useState({});
   const [return_data, setReturnData] = useState({});
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
-  const [roomQuantities, setRoomQuantities] = useState({}); // Add new state for quantities
+  const [roomQuantities, setRoomQuantities] = useState({});
 
   const calculateTotalPrice = () => {
     const total = itinerary.reduce((acc, day) => {
@@ -28,14 +28,12 @@ const TripItinerary = ({ itinerary, onTotalPriceChange,onSelectedRoomsChange }) 
       return acc + dayTotal;
     }, 0);
 
-    // Notify parent component of price changes
     if (onTotalPriceChange) {
       onTotalPriceChange(total);
     }
     return total;
   };
 
-  // Add useEffect to update total price when selections change
   useEffect(() => {
     calculateTotalPrice();
     const finalData = Object.values(return_data);

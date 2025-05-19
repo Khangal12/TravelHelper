@@ -28,7 +28,6 @@ class TripSerializer(serializers.ModelSerializer):
     
     def get_user(self,obj):
         user_id = obj.created_user_id
-        print(user_id)
 
         if user_id:
         # Construct the URL to fetch user data, using only the user ID
@@ -36,7 +35,6 @@ class TripSerializer(serializers.ModelSerializer):
             
             # Make the API call to fetch user data
             user_data = getData(user_url, request=self.context['request'])
-            print(user_data)
             # Return the user data if found
             if user_data:
                 user_data.pop('password', None)
@@ -150,5 +148,22 @@ class TripDetailSerializer(serializers.ModelSerializer):
         if place_data.get('exists'):
             return place_data.get('status')
         return None
+
+class TripDetailChatBotSerializer(serializers.ModelSerializer):
+    days = serializers.SerializerMethodField()
+    detail = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Trip
+        fields = '__all__'
+
+    def get_days(self,obj):
+        total_day = Day.objects.filter(trip=obj).count()
+        return total_day
+
+    def get_detail(self,obj):
+        days = Day.objects.filter(trip=obj)
+        data = DaySerializer(days, many=True,context=self.context).data
+        return data
 
 

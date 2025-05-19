@@ -13,22 +13,26 @@ const Login = () => {
 
   const onFinish = async (values) => {
     setLoading(true);
-    const data = await user.user.login(values);
-    if (data.token) {
-      message.success("Login successful!");
-      localStorage.setItem("token", data.token);
-      if(data.staff){
-        navigate("/places");
+    try {
+      const data = await user.user.login(values);
+      if (data.token) {
+        message.success("Login successful!");
+        localStorage.setItem("token", data.token);
+        if (data.staff) {
+          navigate("/places");
+        } else {
+          navigate("/");
+        }
+      } else {
+        message.error(data.message || "Login failed!");
       }
-      else{
-      navigate("/");
-
-      }
-    } else {
-      message.error(data.error || "Login failed!");
+    } catch (error) {
+      console.error("Login failed:", error); // just for dev logs
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
+  
 
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>

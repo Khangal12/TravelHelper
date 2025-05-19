@@ -85,12 +85,17 @@ class BookingCampSerializer(serializers.ModelSerializer):
         return None
 
     def get_day(self, obj):
-        book = obj.booking
-        x = book.checkin_date
-        y = obj.checkin_date
-        day = (y - x).days
-        return day
-
+        booking = obj.booking
+        booking_checkin_date = booking.checkin_date
+        camp_checkin_date = obj.checkin_date
+        
+        if isinstance(booking_checkin_date, str):
+            booking_checkin_date = timezone.datetime.strptime(booking_checkin_date, '%Y-%m-%d')  # Adjust the format as needed
+        if isinstance(camp_checkin_date, str):
+            camp_checkin_date = timezone.datetime.strptime(camp_checkin_date, '%Y-%m-%d')  # Adjust the format as needed
+        
+        day_difference = (camp_checkin_date - booking_checkin_date).days
+        return day_difference
 
 class BookingDetailSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()

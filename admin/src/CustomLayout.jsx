@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
-import { Layout, Menu } from "antd";
+import { Layout, Menu, FloatButton } from "antd";
 import {
   DashboardOutlined,
   FileTextOutlined,
@@ -8,8 +8,10 @@ import {
   HomeOutlined,
   ContactsOutlined,
   CrownOutlined,
+  MessageOutlined
 } from "@ant-design/icons";
 import usePermissions from "./hook/usePermissions";
+import ChatBotUI from "./components/chatbot/ChatBotUI";
 
 const { Header, Sider, Content } = Layout;
 
@@ -17,6 +19,7 @@ const CustomLayout = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
+  const [showChatbot, setShowChatbot] = useState(false);
   const { hasPermission, loadings, isSuperuser, isUser, isStaff } = usePermissions();
 
 
@@ -128,6 +131,33 @@ const CustomLayout = ({ children }) => {
         <Content style={{ margin: "16px" }}>
           <Outlet />
         </Content>
+
+         {/* Floating Chatbot Button */}
+         <FloatButton
+          icon={<MessageOutlined />}
+          type="primary"
+          style={{ right: 24, bottom: 24 }}
+          onClick={() => setShowChatbot(!showChatbot)}
+        />
+        
+        {showChatbot && (
+          <div style={{
+            position: 'fixed',
+            right: 24,
+            bottom: 80,
+            width: 350,
+            height: 500,
+            backgroundColor: 'white',
+            boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+            borderRadius: 8,
+            zIndex: 1000,
+          }}>
+            {/* Replace with your actual Chatbot component */}
+            <div>
+             <ChatBotUI/>
+            </div>
+          </div>
+        )}
       </Layout>
     </Layout>
   );

@@ -3,6 +3,10 @@ from PIL import Image as PILImage
 from django.conf import settings
 from io import BytesIO
 from urllib.parse import urlparse
+import re
+
+def strip_think_tags(text):
+    return re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
 
 def getData(service_url,request):
     token = request.headers.get("Authorization")

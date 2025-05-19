@@ -6,15 +6,10 @@ from django.contrib.auth.models import User
 
 class SessionAuthentication(BaseAuthentication):
     def authenticate(self, request):
-        # Retrieve the Authorization header
         token = request.headers.get('Authorization')
-
-        # If the token exists in the Authorization header
         if token:
             try:
-                # Extract the token part after 'Bearer ' prefix
-                token = token.split(' ')[1]  # Assumes token format 'Bearer <token>'
-                # Check if token exists in Redis cache
+                token = token.split(' ')[1]
                 user_data = cache.get(f'user_session_{token}')
                 if user_data:
                     user = type("User", (object,), user_data)
@@ -30,5 +25,4 @@ class SessionAuthentication(BaseAuthentication):
             except Exception as e:
                 raise AuthenticationFailed(f'Authentication failed: {str(e)}')
 
-        # Return None if no token is provided or it's invalid
         return None

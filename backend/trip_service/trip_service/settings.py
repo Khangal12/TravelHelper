@@ -14,7 +14,7 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+TOGETHER_API_KEY = '131e881ce89d5916f7a4083b01409834563de15b03f18a29501fbdd06de64dd8'
 ADMIN_SERVICE_URL = "http://admin-service:8001/api/admin/"
 BOOKING_SERVICE_URL = "http://booking-service:8003/api/booking/"
 USER_SERVICE_URL = "http://user-service:8000/api/users/detail/"

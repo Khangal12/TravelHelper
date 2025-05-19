@@ -21,6 +21,7 @@ import AdminPermissionPanel from "./pages/Admission";
 import usePermissions from "./hook/usePermissions";
 import "@ant-design/v5-patch-for-react-19";
 import BookingDetail from "./pages/BookingDetail";
+import ChatBotUI from "./components/chatbot/ChatBotUI";
 
 const ProtectedRoutes = () => {
   const { hasPermission, loading,isSuperuser, isUser,isStaff } = usePermissions();
@@ -65,6 +66,7 @@ const ProtectedRoutes = () => {
         <Route path="/camps" element={<CampBuild />} />
         {isStaff && <Route path="/camps/new" element={<CampAdd />} />}
         <Route path="/camps/:id" element={<CampDetails />} />
+        <Route path="/chatbot" element={<ChatBotUI />} />
       </Route>
     </Routes>
   );
